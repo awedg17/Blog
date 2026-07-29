@@ -1,0 +1,133 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  background-color: #f4f1ec;
+  color: #1e1e1e;
+}
+
+::selection {
+  background-color: #6b7a3a;
+  color: #f4f1ec;
+}
+
+/* Rendered post content (from markdown) */
+.prose-post h2 {
+  font-weight: 700;
+  font-size: 1.4rem;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e4e0d8;
+  scroll-margin-top: 2rem;
+}
+.prose-post p {
+  margin-bottom: 1rem;
+  line-height: 1.7;
+  color: #33322f;
+}
+.prose-post code {
+  background: #e9e5db;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.25rem;
+  font-size: 0.9em;
+}
+.prose-post h3 {
+  font-weight: 700;
+  font-size: 1.15rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+.prose-post ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+.prose-post ol li {
+  margin-bottom: 0.5rem;
+  line-height: 1.7;
+  color: #33322f;
+}
+.prose-post img {
+  border-radius: 0.5rem;
+  margin: 1.5rem 0;
+  max-width: 100%;
+}
+
+/* Rendered code blocks (from markdown) */
+.prose-post .code-block {
+  background: #2b2b26;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  margin: 1.25rem 0;
+}
+.prose-post .code-block-header {
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: "Fira Code", Menlo, Consolas, "Courier New", monospace;
+}
+.prose-post .code-block pre {
+  padding: 1rem;
+  overflow-x: auto;
+}
+.prose-post .code-block code {
+  background: transparent;
+  padding: 0;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: #d4d4d4;
+  font-family: "Fira Code", Menlo, Consolas, "Courier New", monospace;
+}
+
+/* Code block syntax highlighting — VSCode Dark+ palette */
+.code-editor-pre,
+.code-editor-pre * {
+  font-family: "Fira Code", Menlo, Consolas, "Courier New", monospace !important;
+}
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: #6a9955;
+  font-style: italic;
+}
+.token.keyword,
+.token.operator,
+.token.builtin {
+  color: #569cd6;
+}
+.token.string,
+.token.attr-value,
+.token.char {
+  color: #ce9178;
+}
+.token.function,
+.token.function-variable {
+  color: #dcdcaa;
+}
+.token.number,
+.token.boolean {
+  color: #b5cea8;
+}
+.token.class-name,
+.token.tag,
+.token.selector {
+  color: #4ec9b0;
+}
+.token.variable,
+.token.parameter,
+.token.property,
+.token.attr-name {
+  color: #9cdcfe;
+}
+.token.punctuation {
+  color: #d4d4d4;
+}
+.token.constant,
+.token.symbol {
+  color: #4fc1ff;
+}
