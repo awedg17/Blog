@@ -12,6 +12,7 @@ db.pragma("journal_mode = WAL");
 db.exec(`
   CREATE TABLE IF NOT EXISTS admin (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL DEFAULT '',
     email TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL
   );
@@ -45,6 +46,36 @@ const postsCols = db.prepare("PRAGMA table_info(posts)").all() as { name: string
 if (!postsCols.some((c) => c.name === "pinned")) {
   db.exec("ALTER TABLE posts ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0");
 }
+
+// Migration: add `username` to admin accounts created before this column existed,
+// backfilled from the email local-part (deduped if two emails collide on it),
+// then enforce uniqueness going forward via a unique index (SQLite can't add a
+// UNIQUE constraint through ALTER TABLE ADD COLUMN).
+const adminCols = db.prepare("PRAGMA table_info(admin)").all() as { name: string }[];
+if (!adminCols.some((c) => c.name === "username")) {
+  db.exec("ALTER TABLE admin ADD COLUMN username TEXT NOT NULL DEFAULT ''");
+}
+const blankUsernames = db.prepare("SELECT id, email FROM admin WHERE username = ''").all() as {
+  id: number;
+  email: string;
+}[];
+if (blankUsernames.length > 0) {
+  const taken = new Set(
+    (db.prepare("SELECT username FROM admin WHERE username != ''").all() as { username: string }[]).map(
+      (r) => r.username
+    )
+  );
+  const updateUsername = db.prepare("UPDATE admin SET username = ? WHERE id = ?");
+  for (const row of blankUsernames) {
+    const base = row.email.split("@")[0];
+    let candidate = base;
+    let n = 2;
+    while (taken.has(candidate)) candidate = `${base}${n++}`;
+    taken.add(candidate);
+    updateUsername.run(candidate, row.id);
+  }
+}
+db.exec("CREATE UNIQUE INDEX IF NOT EXISTS admin_username_unique ON admin(username)");
 
 // ensure a single profile row exists
 const profileRow = db.prepare("SELECT id FROM profile WHERE id = 1").get();

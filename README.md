@@ -10,17 +10,19 @@ cp .env.example .env.local
 ```
 
 Edit `.env.local`:
-- `ADMIN_EMAIL` / `ADMIN_PASSWORD` — your login for `/admin` (only used the first time you run the seed script).
 - `SESSION_SECRET` — generate one with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.
 
 Then:
 
 ```bash
-npm run seed   # creates the admin account + a few demo posts in data/blog.db
-npm run dev    # http://localhost:3000
+npm run create-admin   # interactive: username, email, password
+npm run seed            # a few demo posts in data/blog.db (never touches admin accounts)
+npm run dev              # http://localhost:3000
 ```
 
-To change your password later, edit `ADMIN_PASSWORD` in `.env.local` and run `npm run seed` again (it updates the existing account instead of creating a duplicate).
+Sign in at `/login` with either your username or your email — both work with the same password.
+
+To change your password later: `npm run reset-password`. Multiple admin accounts are supported — run `create-admin` again for another login.
 
 ## Pages
 

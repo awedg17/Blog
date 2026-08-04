@@ -137,7 +137,8 @@ Catatan penting:
 - Tidak ada foreign key antar tabel — desainnya sengaja single-admin & single-profile.
 - **Migrasi sederhana**: saat startup, `db.ts` mengecek `PRAGMA table_info(posts)` dan menjalankan `ALTER TABLE posts ADD COLUMN pinned ...` jika kolom itu belum ada. Ini satu-satunya mekanisme migrasi (tidak pakai Prisma/Drizzle atau migration framework).
 - `journal_mode = WAL` diaktifkan (terkonfirmasi lewat `db.pragma("journal_mode = WAL")` dan keberadaan file `blog.db-wal` / `blog.db-shm`).
-- Seed awal (`npm run seed`) membuat akun admin dari env `ADMIN_EMAIL`/`ADMIN_PASSWORD` dan 4 artikel demo. Menjalankan seed ulang akan meng-update password admin, bukan membuat duplikat.
+- Akun admin dikelola terpisah dari seed lewat `npm run create-admin` (interaktif: username, email, password) dan `npm run reset-password`. Mendukung banyak admin sekaligus, username dan email sama-sama unique. `npm run seed` sekarang cuma isi 4 artikel demo, tidak pernah menyentuh tabel admin.
+- Login di `/login` menerima username ATAU email di field yang sama (`WHERE email = ? OR username = ?`), password sama untuk keduanya. Pesan error tetap generik, tidak membocorkan mana yang salah (email/username vs password).
 
 ---
 

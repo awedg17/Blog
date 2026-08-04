@@ -1,28 +1,13 @@
-/* Seeds the admin account and a couple of demo posts. Run with: npm run seed */
+/* Seeds demo/sample posts only — never touches admin accounts. Run with: npm run seed */
 const Database = require("better-sqlite3");
-const bcrypt = require("bcryptjs");
 const path = require("path");
 const fs = require("fs");
-
-// minimal .env.local loader (no extra dependency)
-const envPath = path.join(process.cwd(), ".env.local");
-if (fs.existsSync(envPath)) {
-  for (const line of fs.readFileSync(envPath, "utf8").split("\n")) {
-    const m = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
-    if (m && !process.env[m[1]]) process.env[m[1]] = (m[2] || "").trim();
-  }
-}
 
 const dataDir = path.join(process.cwd(), "data");
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 const db = new Database(path.join(dataDir, "blog.db"));
 
 db.exec(`
-  CREATE TABLE IF NOT EXISTS admin (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL
-  );
   CREATE TABLE IF NOT EXISTS posts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
@@ -35,19 +20,6 @@ db.exec(`
     updated_at TEXT NOT NULL
   );
 `);
-
-const email = process.env.ADMIN_EMAIL || "dewa@gmail.com";
-const password = process.env.ADMIN_PASSWORD || "changeme123";
-const hash = bcrypt.hashSync(password, 10);
-
-const existing = db.prepare("SELECT id FROM admin WHERE email = ?").get(email);
-if (existing) {
-  db.prepare("UPDATE admin SET password_hash = ? WHERE email = ?").run(hash, email);
-  console.log(`Updated admin password for ${email}`);
-} else {
-  db.prepare("INSERT INTO admin (email, password_hash) VALUES (?, ?)").run(email, hash);
-  console.log(`Created admin ${email}`);
-}
 
 const count = db.prepare("SELECT COUNT(*) as c FROM posts").get().c;
 if (count === 0) {

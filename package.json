@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "seed": "node scripts/seed.js",
-    "seed:articles": "node scripts/seed-articles.js"
+    "seed:articles": "node scripts/seed-articles.js",
+    "create-admin": "node scripts/create-admin.js",
+    "reset-password": "node scripts/reset-password.js"
   },
   "dependencies": {
     "next": "14.2.5",
