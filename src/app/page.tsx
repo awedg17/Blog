@@ -4,9 +4,9 @@ import { realUrl } from "@/lib/slug";
 import SocialLinks from "@/components/SocialLinks";
 import PostList from "@/components/PostList";
 
-export default function HomePage() {
-  const posts = listPublishedPosts();
-  const profile = getProfile();
+export default async function HomePage() {
+  const posts = await listPublishedPosts();
+  const profile = await getProfile();
 
   return (
     <main className="min-h-screen bg-cream px-6 py-10 sm:px-16 sm:py-14">

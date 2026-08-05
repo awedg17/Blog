@@ -5,8 +5,8 @@ import { renderPostContent } from "@/lib/markdown";
 import { formatDate } from "@/lib/slug";
 import TableOfContents from "@/components/TableOfContents";
 
-export default function PostPage({ params }: { params: { slug: string } }) {
-  const post = getPostBySlug(params.slug);
+export default async function PostPage({ params }: { params: { slug: string } }) {
+  const post = await getPostBySlug(params.slug);
   if (!post || post.status !== "published") notFound();
 
   const { html, toc } = renderPostContent(post.content);

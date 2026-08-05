@@ -93,7 +93,7 @@ export default function AdminPostList({
     }
     // Pinned always float to the top regardless of sort choice.
     return [...list].sort((a, b) => {
-      if (a.pinned !== b.pinned) return b.pinned - a.pinned;
+      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
       if (sortKey === "title") return a.title.localeCompare(b.title);
       return b.updated_at.localeCompare(a.updated_at);
     });

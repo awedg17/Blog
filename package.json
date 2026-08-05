@@ -6,29 +6,34 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "seed": "node scripts/seed.js",
+    "db:schema": "node scripts/apply-schema.js",
+    "db:migrate-data": "node scripts/migrate-data.js",
+    "db:seed": "node scripts/seed.js",
+    "seed": "npm run db:seed",
     "seed:articles": "node scripts/seed-articles.js"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^17.4.2",
+    "marked": "^13.0.3",
     "next": "14.2.5",
+    "pg": "^8.22.0",
+    "prismjs": "^1.29.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "better-sqlite3": "^11.3.0",
-    "bcryptjs": "^2.4.3",
-    "marked": "^13.0.3",
-    "prismjs": "^1.29.0",
     "react-simple-code-editor": "^0.14.1"
   },
   "devDependencies": {
-    "typescript": "^5.5.4",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20.14.15",
+    "@types/pg": "^8.20.4",
+    "@types/prismjs": "^1.26.4",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "@types/better-sqlite3": "^7.6.11",
-    "@types/bcryptjs": "^2.4.6",
-    "@types/prismjs": "^1.26.4",
-    "tailwindcss": "^3.4.9",
+    "autoprefixer": "^10.4.20",
+    "better-sqlite3": "^13.0.3",
     "postcss": "^8.4.41",
-    "autoprefixer": "^10.4.20"
+    "tailwindcss": "^3.4.9",
+    "typescript": "^5.5.4"
   }
 }

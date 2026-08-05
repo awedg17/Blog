@@ -10,9 +10,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Email and password are required." }, { status: 400 });
   }
 
-  const admin = db.prepare("SELECT * FROM admin WHERE email = ?").get(email) as
-    | { id: number; email: string; password_hash: string }
-    | undefined;
+  const { rows } = await db.query("SELECT * FROM admin WHERE email = $1", [email]);
+  const admin = rows[0] as { id: number; email: string; password_hash: string } | undefined;
 
   // Always compare against a hash (even a dummy one) to avoid timing leaks on unknown emails.
   const hashToCheck = admin?.password_hash ?? "$2a$10$invalidinvalidinvalidinvalidinvalidinvalidinvalidinva";

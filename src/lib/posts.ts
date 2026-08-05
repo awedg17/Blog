@@ -11,89 +11,102 @@ export type Post = {
   published_at: string | null;
   created_at: string;
   updated_at: string;
-  pinned: number; // 0 | 1 (SQLite has no boolean)
+  pinned: boolean; // Changed from number to boolean
 };
 
-export function listPosts(): Post[] {
-  // Pinned posts always first; within each group, most recently edited first.
-  return db
-    .prepare("SELECT * FROM posts ORDER BY pinned DESC, updated_at DESC")
-    .all() as Post[];
+export async function listPosts(): Promise<Post[]> {
+  const { rows } = await db.query(
+    "SELECT * FROM posts ORDER BY pinned DESC, updated_at DESC"
+  );
+  return rows;
 }
 
-export function listPublishedPosts(): Post[] {
-  return db
-    .prepare("SELECT * FROM posts WHERE status = 'published' ORDER BY pinned DESC, published_at DESC")
-    .all() as Post[];
+export async function listPublishedPosts(): Promise<Post[]> {
+  const { rows } = await db.query(
+    "SELECT * FROM posts WHERE status = 'published' ORDER BY pinned DESC, published_at DESC"
+  );
+  return rows;
 }
 
-export function getPostBySlug(slug: string): Post | undefined {
-  return db.prepare("SELECT * FROM posts WHERE slug = ?").get(slug) as Post | undefined;
+export async function getPostBySlug(slug: string): Promise<Post | undefined> {
+  const { rows } = await db.query("SELECT * FROM posts WHERE slug = $1", [slug]);
+  return rows[0];
 }
 
-export function getPostById(id: number): Post | undefined {
-  return db.prepare("SELECT * FROM posts WHERE id = ?").get(id) as Post | undefined;
+export async function getPostById(id: number): Promise<Post | undefined> {
+  const { rows } = await db.query("SELECT * FROM posts WHERE id = $1", [id]);
+  return rows[0];
 }
 
-function uniqueSlug(base: string, ignoreId?: number): string {
-  let candidate = base || "post";
-  let i = 2;
-  while (true) {
-    const row = db.prepare("SELECT id FROM posts WHERE slug = ?").get(candidate) as
-      | { id: number }
-      | undefined;
-    if (!row || row.id === ignoreId) return candidate;
-    candidate = `${base}-${i++}`;
-  }
+async function isSlugUnique(slug: string, ignoreId?: number): Promise<boolean> {
+    const { rows } = await db.query("SELECT id FROM posts WHERE slug = $1", [slug]);
+    const row = rows[0];
+    return !row || row.id === ignoreId;
 }
 
-export function createPost(input: { title: string; excerpt: string; content: string }): Post {
-  const now = new Date().toISOString();
-  const slug = uniqueSlug(slugify(input.title));
-  const info = db
-    .prepare(
-      `INSERT INTO posts (title, slug, excerpt, content, status, published_at, created_at, updated_at)
-       VALUES (@title, @slug, @excerpt, @content, 'draft', NULL, @created_at, @updated_at)`
-    )
-    .run({ title: input.title, slug, excerpt: input.excerpt, content: input.content, created_at: now, updated_at: now });
-  return getPostById(Number(info.lastInsertRowid))!;
+async function uniqueSlug(base: string, ignoreId?: number): Promise<string> {
+    let candidate = base || "post";
+    let i = 2;
+    while (!(await isSlugUnique(candidate, ignoreId))) {
+        candidate = `${base}-${i++}`;
+    }
+    return candidate;
 }
 
-export function updatePost(
+export async function createPost(input: { title: string; excerpt: string; content: string }): Promise<Post> {
+  const slug = await uniqueSlug(slugify(input.title));
+  const { rows } = await db.query(
+    `INSERT INTO posts (title, slug, excerpt, content, status)
+     VALUES ($1, $2, $3, $4, 'draft')
+     RETURNING *`,
+    [input.title, slug, input.excerpt, input.content]
+  );
+  return rows[0];
+}
+
+export async function updatePost(
   id: number,
   input: { title: string; excerpt: string; content: string }
-): Post | undefined {
-  const existing = getPostById(id);
+): Promise<Post | undefined> {
+  const existing = await getPostById(id);
   if (!existing) return undefined;
-  const now = new Date().toISOString();
+  
   const slug =
-    existing.title === input.title ? existing.slug : uniqueSlug(slugify(input.title), id);
-  db.prepare(
-    `UPDATE posts SET title = @title, slug = @slug, excerpt = @excerpt, content = @content, updated_at = @updated_at
-     WHERE id = @id`
-  ).run({ id, title: input.title, slug, excerpt: input.excerpt, content: input.content, updated_at: now });
-  return getPostById(id);
+    existing.title === input.title ? existing.slug : await uniqueSlug(slugify(input.title), id);
+
+  const { rows } = await db.query(
+    `UPDATE posts SET title = $1, slug = $2, excerpt = $3, content = $4
+     WHERE id = $5
+     RETURNING *`,
+    [input.title, slug, input.excerpt, input.content, id]
+  );
+  return rows[0];
 }
 
-export function setPinned(id: number, pinned: boolean): Post | undefined {
-  db.prepare("UPDATE posts SET pinned = @pinned WHERE id = @id").run({ id, pinned: pinned ? 1 : 0 });
-  return getPostById(id);
+export async function setPinned(id: number, pinned: boolean): Promise<Post | undefined> {
+    const { rows } = await db.query(
+        "UPDATE posts SET pinned = $1 WHERE id = $2 RETURNING *",
+        [pinned, id]
+    );
+    return rows[0];
 }
 
-export function deletePost(id: number): void {
-  db.prepare("DELETE FROM posts WHERE id = ?").run(id);
+export async function deletePost(id: number): Promise<void> {
+  await db.query("DELETE FROM posts WHERE id = $1", [id]);
 }
 
-export function publishPost(id: number): Post | undefined {
-  const now = new Date().toISOString();
-  db.prepare(
-    "UPDATE posts SET status = 'published', published_at = COALESCE(published_at, @now), updated_at = @now WHERE id = @id"
-  ).run({ id, now });
-  return getPostById(id);
+export async function publishPost(id: number): Promise<Post | undefined> {
+  const { rows } = await db.query(
+    "UPDATE posts SET status = 'published', published_at = COALESCE(published_at, NOW()) WHERE id = $1 RETURNING *",
+    [id]
+  );
+  return rows[0];
 }
 
-export function unpublishPost(id: number): Post | undefined {
-  const now = new Date().toISOString();
-  db.prepare("UPDATE posts SET status = 'draft', updated_at = @now WHERE id = @id").run({ id, now });
-  return getPostById(id);
+export async function unpublishPost(id: number): Promise<Post | undefined> {
+  const { rows } = await db.query(
+    "UPDATE posts SET status = 'draft' WHERE id = $1 RETURNING *",
+    [id]
+  );
+  return rows[0];
 }
