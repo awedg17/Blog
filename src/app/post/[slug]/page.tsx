@@ -5,6 +5,10 @@ import { renderPostContent } from "@/lib/markdown";
 import { formatDate } from "@/lib/slug";
 import TableOfContents from "@/components/TableOfContents";
 
+// Same reasoning as the homepage: avoid a stale build-time snapshot of a
+// post that can be published/edited at any time via the admin UI.
+export const dynamic = "force-dynamic";
+
 export default async function PostPage({ params }: { params: { slug: string } }) {
   const post = await getPostBySlug(params.slug);
   if (!post || post.status !== "published") notFound();

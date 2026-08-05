@@ -4,6 +4,11 @@ import { realUrl } from "@/lib/slug";
 import SocialLinks from "@/components/SocialLinks";
 import PostList from "@/components/PostList";
 
+// Posts come straight from Postgres and change whenever the admin
+// publishes/edits — render fresh on every request instead of the
+// build-time static snapshot Next.js would otherwise cache indefinitely.
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const posts = await listPublishedPosts();
   const profile = await getProfile();
