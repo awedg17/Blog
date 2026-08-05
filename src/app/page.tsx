@@ -23,7 +23,7 @@ export default async function HomePage() {
             <div className="mt-4 h-14 w-14 overflow-hidden rounded-full bg-border">
               {profile.avatar_url && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={"/Profile.jpeg"} alt={profile.name} className="h-full w-full scale-125 object-cover object-top" />
+                <img src={profile.avatar_url} alt={profile.name} className="h-full w-full scale-125 object-cover object-top" />
               )}
             </div>
 
