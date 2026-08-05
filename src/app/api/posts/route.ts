@@ -5,7 +5,7 @@ import { createPost, listPosts } from "@/lib/posts";
 export async function GET() {
   const session = getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  return NextResponse.json({ posts: listPosts() });
+  return NextResponse.json({ posts: await listPosts() });
 }
 
 export async function POST(req: NextRequest) {
@@ -17,10 +17,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Title is required." }, { status: 400 });
   }
 
-  const post = createPost({
+  const post = await createPost({ // Tambahkan 'await' di sini
     title: String(title).trim(),
     excerpt: String(excerpt || "").trim(),
     content: String(content || ""),
   });
+
+  if (!post) { // Tambahkan cek ini
+    console.error("Failed to create post in createPost function.");
+    return NextResponse.json({ error: "Failed to create post." }, { status: 500 });
+  }
   return NextResponse.json({ post }, { status: 201 });
 }

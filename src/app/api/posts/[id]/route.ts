@@ -5,7 +5,7 @@ import { deletePost, getPostById, setPinned, updatePost } from "@/lib/posts";
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   const session = getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const post = getPostById(Number(params.id));
+  const post = await getPostById(Number(params.id));
   if (!post) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json({ post });
 }
@@ -19,7 +19,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ error: "Title is required." }, { status: 400 });
   }
 
-  const post = updatePost(Number(params.id), {
+  const post = await updatePost(Number(params.id), {
     title: String(title).trim(),
     excerpt: String(excerpt || "").trim(),
     content: String(content || ""),
@@ -37,7 +37,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (typeof body.pinned !== "boolean") {
     return NextResponse.json({ error: "Nothing to update." }, { status: 400 });
   }
-  const post = setPinned(Number(params.id), body.pinned);
+  const post = await setPinned(Number(params.id), body.pinned);
   if (!post) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json({ post });
 }
@@ -45,6 +45,6 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   const session = getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  deletePost(Number(params.id));
+  await deletePost(Number(params.id));
   return NextResponse.json({ ok: true });
 }

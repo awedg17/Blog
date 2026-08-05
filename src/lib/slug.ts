@@ -14,18 +14,19 @@ export function formatDate(iso: string | null): string {
   return d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric"});
 }
 
-export function timeAgo(iso: string | null): string {
-  if (!iso) return "";
-  const diffMs = Date.now() - new Date(iso).getTime();
+export function timeAgo(dateish: string | Date | null | undefined): string {
+  if (!dateish) return "";
+  const d = typeof dateish === "string" ? new Date(dateish) : dateish;
+  const diffMs = Date.now() - d.getTime();
   const mins = Math.floor(diffMs / 60000);
   if (mins < 1) return "just now";
   if (mins < 60) return `${mins} min ago`;
   const hours = Math.floor(mins / 60);
   if (hours < 24) return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
-  const days = Math.floor(hours / 24);
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   if (days < 7) return `${days} ${days === 1 ? "day" : "days"} ago`;
   // Older than a week: relative time stops being useful, show the date.
-  return formatDate(iso);
+  return formatDate(typeof dateish === "string" ? dateish : d.toISOString());
 }
 
 /** Treat empty strings and the "#" placeholder (seed default) as no URL. */

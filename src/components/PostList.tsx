@@ -60,7 +60,7 @@ export default function PostList({ initialPosts }: { initialPosts: Post[] }) {
     return [...list].sort((a, b) => {
       if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
       if (sortKey === "title") return a.title.localeCompare(b.title);
-      return String(b.published_at ?? "").localeCompare(String(a.published_at ?? ""));
+      return new Date(b.published_at ?? 0).getTime() - new Date(a.published_at ?? 0).getTime();
     });
   }, [initialPosts, query, sortKey, filterKey]);
 

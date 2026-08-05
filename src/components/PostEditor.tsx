@@ -107,16 +107,33 @@ export default function PostEditor({ post }: { post?: Post }) {
   }
 
   async function handlePublish() {
+    console.log("handlePublish called!"); // Tambahkan ini
     setMenuOpen(false);
     // Always save first — even for existing posts — so title/content edits
     // are persisted before the publish action runs.
     const id = await save();
-    if (!id) return;
-    await fetch(`/api/posts/${id}/publish`, {
+    // --- Tambahkan console.log di sini ---
+    console.log(`Result of save(): id = ${id}`);
+    if (!id) {
+      console.error("Save operation failed, or returned no ID. Cannot proceed with publish.");
+      setSaving(false); // Reset saving state on save failure
+      return;
+    }
+    // --- Akhir penambahan console.log ---
+
+    console.log(`Attempting to publish post with ID: ${id}`);
+    setSaving(true); // Set saving state for the publish API call
+    const publishRes = await fetch(`/api/posts/${id}/publish`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "publish" }),
     });
+
+    console.log(`Publish API response status: ${publishRes.status}`);
+    const publishData = await publishRes.json().catch(() => ({}));
+    console.log("Publish API response data:", publishData);
+
+    setSaving(false); // Reset saving state after publish API call
     goToList();
   }
 

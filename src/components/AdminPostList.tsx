@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { timeAgo } from "@/lib/slug";
+import ClientTimeAgo from "./ClientTimeAgo";
 import HoverActionButton from "./HoverActionButton";
 import {
   PencilIcon,
@@ -95,7 +95,7 @@ export default function AdminPostList({
     return [...list].sort((a, b) => {
       if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
       if (sortKey === "title") return a.title.localeCompare(b.title);
-      return String(b.updated_at ?? "").localeCompare(String(a.updated_at ?? ""));
+      return new Date(b.updated_at ?? 0).getTime() - new Date(a.updated_at ?? 0).getTime();
     });
   }, [posts, query, sortKey, filterKey]);
 
@@ -298,7 +298,7 @@ export default function AdminPostList({
                 <p className="mt-1 text-xs text-muted" suppressHydrationWarning>
                   {post.status === "published" ? "Published" : "Draft"}
                   {" · Edited "}
-                  <span className="text-ink">{timeAgo(post.updated_at)}</span>
+                  <span className="text-ink"><ClientTimeAgo dateish={post.updated_at} /></span>
                 </p>
 
                 <div className="mt-3 flex items-center gap-2">
