@@ -425,44 +425,14 @@ export default function BlockEditor({
       const key = e.key.toLowerCase();
       if (key === "b" || key === "i" || key === "u") {
         const el = e.currentTarget as HTMLDivElement;
-        const sel = window.getSelection();
-        const beforeHtml = el.innerHTML;
-
-        console.log(`[FORMAT-${key.toUpperCase()}] BEFORE:`, {
-          key,
-          blockId: block.id,
-          blockText: block.text,
-          beforeHtml,
-          selection: sel ? {
-            text: sel.toString(),
-            isCollapsed: sel.isCollapsed,
-            rangeCount: sel.rangeCount
-          } : null,
-        });
-
         e.preventDefault();
         document.execCommand(key === "b" ? "bold" : key === "i" ? "italic" : "underline");
-
-        const afterHtml = el.innerHTML;
-        const markdownStored = htmlToMarkdownInline(afterHtml);
-
-        console.log(`[FORMAT-${key.toUpperCase()}] AFTER:`, {
-          afterHtml,
-          markdownStored,
-        });
-
-        updateBlock(block.id, { text: markdownStored });
+        updateBlock(block.id, { text: htmlToMarkdownInline(el.innerHTML) });
         return;
       }
       if (key === "k") {
         e.preventDefault();
         const el = e.currentTarget as HTMLDivElement;
-        const sel = window.getSelection();
-        console.log(`[LINK-K] BEFORE:`, {
-          blockId: block.id,
-          beforeHtml: el.innerHTML,
-          selection: sel ? { text: sel.toString(), isCollapsed: sel.isCollapsed } : null,
-        });
         updateBlock(block.id, { text: htmlToMarkdownInline(insertLink(el)) });
         return;
       }
@@ -491,39 +461,12 @@ export default function BlockEditor({
       insertAfter(block.id, block.type === "numbered-list" ? "numbered-list" : "paragraph");
       return;
     }
-    if (e.key === "Backspace" && block.type !== "code") {
-      const el = e.currentTarget as HTMLDivElement;
-      const sel = window.getSelection();
-      const range = sel?.rangeCount ? sel.getRangeAt(0) : null;
-
-      console.log(`[BACKSPACE] PRESSED:`, {
-        blockId: block.id,
-        blockType: block.type,
-        blockText: block.text,
-        isEmpty: block.text === "",
-        html: el.innerHTML,
-        selection: sel ? {
-          isCollapsed: sel.isCollapsed,
-          anchorOffset: sel.anchorOffset,
-          focusOffset: sel.focusOffset,
-        } : null,
-        rangeInfo: range ? {
-          startOffset: range.startOffset,
-          endOffset: range.endOffset,
-          collapsed: range.collapsed,
-        } : null,
-      });
-
-      if (block.text === "") {
-        e.preventDefault();
-        console.log(`[BACKSPACE] CONDITION MET (empty block) — converting/removing`);
-        if (block.type !== "paragraph") {
-          updateBlock(block.id, { type: "paragraph" });
-        } else {
-          removeBlock(block.id);
-        }
+    if (e.key === "Backspace" && block.text === "") {
+      e.preventDefault();
+      if (block.type !== "paragraph") {
+        updateBlock(block.id, { type: "paragraph" });
       } else {
-        console.log(`[BACKSPACE] CONDITION FAILED (block not empty) — browser default will run`);
+        removeBlock(block.id);
       }
       return;
     }
@@ -654,6 +597,7 @@ export default function BlockEditor({
                     <Editor
                       value={block.text}
                       onValueChange={(code) => updateBlock(block.id, { text: code })}
+                      onKeyDown={(e) => handleKeyDown(e, block, filteredPrimary)}
                       highlight={(code) => highlightCode(code, block.language ?? "")}
                       padding={16}
                       textareaId={`code-${block.id}`}
